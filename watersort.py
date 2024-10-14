@@ -26,11 +26,6 @@ class Tube:
     def __init__(self, colors: List[Color]=[], capacity: int = 4):
         """ Initializes a Tube for use in a WaterSort level
 
-        This function accepts a list of colors and (optionally) a
-        capacity and determines whether the tube is solved, the
-        tube's remaining space, and the number of the same color
-        on top of the tube to use in typical Tube operations. 
-
         This function throws an exception if the inputted capacity
         is not 4 (standard tube) or 1 (extra tube), or if the length 
         of the inputted list of colors is greater than the capacity
@@ -79,7 +74,7 @@ class Tube:
         """ Returns the color(s) in the tube at position(s) indices
 
         Args:
-            indices: int or slice
+            indices (int | slice): the index or indices of the tube to return
 
         Returns:
             Color or list of Colors
@@ -113,7 +108,7 @@ class Tube:
         """
         return len(self) == 0 or (len(self) == 4 and self.is_unicolor())
     def is_unicolor(self) -> bool:
-        """ Determines whether the Tube is length 0 or entirely one color
+        """ Determines whether the Tube is exactly one color
 
         Args:
             None
@@ -157,7 +152,7 @@ class Tube:
         return self[:self.num_same_color_on_top()]
 
     def pop(self, num_to_move: int = None) -> List[Color]:
-        """ Returns the top matching colors on the tube while modifying the tube
+        """ Returns the top matching colors on the tube. Modifies the tube
 
         For example, if a tube has 2 emeralds on top of 2 reds, pop
         will return a list of 2 emeralds and only contain 2 reds
