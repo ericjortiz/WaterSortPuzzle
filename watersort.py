@@ -1,3 +1,4 @@
+from collections import deque
 from copy import copy
 from enum import Enum
 from typing import List, Tuple, Union
@@ -273,46 +274,18 @@ class WaterSort:
         Args:
             None
         Returns:
-            Union[List[str], str]: list of moves to make, or "No solution found"
+            List[str] | str: list of moves to make, or "No solution found"
 
         """
-        solved, path = self.__solve_helper(self.tubes)
-        if solved:
-            return path
+        stack = deque(self.__get_next_moves(self.tubes))
+        while len(stack) > 0:
+            tubes, path = stack.pop()
+            if WaterSort.__is_solved(tubes):
+                return path
+            next_moves = self.__get_next_moves(tubes, path)
+            if len(next_moves) > 0:
+                stack.extend(next_moves)
         return "No solution found"
-
-    def __solve_helper(
-        self,
-        tubes: List[Tube],
-        path:List[Tuple[int, int]] = [], 
-    ) -> Tuple[bool, List[str]]:
-        """ The internal helper function to solve the level.
-
-        This function accepts a list of tubes and recursively explores
-        possible paths until a solution is found. At which point, it will
-        return a string representation of the path to the solution. 
-        
-        Args:
-            tubes (List[Tube]): the state of the level at the current state
-            path (List[Tuple[int, int]]): the path to the current state
-        Returns:
-            bool: whether a solution was found
-            List[str]]: the path to the solution (if one was found), or []
-
-        """
-        if WaterSort.__is_solved(tubes):
-            return True, path
-        for idx1, idx2 in self.__get_possible_paths(tubes):
-            tubes_cpy = [copy(tube) for tube in tubes]
-            path_cpy = [p for p in path]
-
-            path_cpy.append((idx1,idx2))
-            tubes_cpy[idx2].insert(tubes_cpy[idx1].pop())
-
-            solved, path_cpy = self.__solve_helper(tubes_cpy, path_cpy)
-            if solved:
-                return True, path_cpy
-        return False, [[]]
 
     @staticmethod
     def __is_solved(tubes: List[Tube]) -> bool:
@@ -332,25 +305,25 @@ class WaterSort:
                 return False
         return True
 
-    def __get_possible_paths(self, tubes: List[Tube]) -> List[Tuple[int, int]]:
-        """ Returns the possible paths based on the provided list of tubes
+    def __get_next_moves(
+        self, 
+        tubes: List[Tube], 
+        path: List[Tuple[int, int]] = [],
+    ) -> List[Tuple[List[Tube], List[Tuple[int, int]]]]:
+        """ Returns the tubes and possible paths one depth deeper
 
-        This function accepts a list of tubes and returns possible paths
-        that can be made from the given list. For example, if the only
-        valid move is from tube 0 to tube 4, the function will return
-        [(0, 4)]. To limit the solution space and avoid infinite loops,
-        we don't consider moves from empty tubes anywhere, one tube to
-        itself, or unicolor tubes anywhere. If there is more than one
-        empty tube, we also only consider placing each tube onto exactly
-        one of the empty tubes to avoid exploring the same path twice.
+        This function accepts a list of tubes and a path and returns a list of
+        tuples containing the tubes and paths one level deeper than the inputs.
         
         Args:
             tubes (List[Tube]): the current state of the tubes
+            path (List[Tuple[int, int]]): the path from self.tubes to tubes
         Returns:
-            List[Tuple[int, int]]: the possible paths that can be explored
-
+            List[Tuple[List[Tube], List[Tuple[int, int]]]]: a list of moves
+                represented as a tuple of Tubes and a path
+            
         """
-        possible_paths = []
+        next_moves = []
         colors_in_unicolor_tubes = {}
         for tube in tubes:
             if tube.is_unicolor():
@@ -374,5 +347,14 @@ class WaterSort:
                             # consider moving tube i onto at most one empty tube
                             continue
                         empty_tubes_considered_i[tube_i[0]] = True
-                    possible_paths.append((i, j))
-        return possible_paths
+
+                    # insert the valid move into next_moves
+                    # by updating a copy of tubes and path
+                    tubes_cpy = [copy(tube) for tube in tubes]
+                    path_cpy = [p for p in path]
+
+                    path_cpy.append((i, j))
+                    tubes_cpy[j].insert(tubes_cpy[i].pop())
+
+                    next_moves.append((tubes_cpy, path_cpy))
+        return next_moves
