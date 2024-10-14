@@ -257,7 +257,7 @@ class WaterSort:
             else:
                 self.tubes.append(Tube(tube_of_colors))
 
-    def solve(self) -> Union[List[str], str]:
+    def solve(self) -> Union[List[Tuple[int, int]], str]:
         """ Finds a solution to the WaterSort level, if one exists
 
         This function uses a depth first search (DFS) retrieval to
